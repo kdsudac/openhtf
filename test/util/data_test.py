@@ -12,12 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 import mock
 
-from builtins import int
 from openhtf.util import data
-from past.builtins import long
 
 
 class TestData(unittest.TestCase):
@@ -30,7 +29,7 @@ class TestData(unittest.TestCase):
       'list': [10],
       'tuple': (10,),
       'str': '10',
-      'unicode': '10',
+      'unicode': u'10',
       'int': 2 ** 40,
       'float': 10.0,
       'long': 2 ** 80,
@@ -41,15 +40,18 @@ class TestData(unittest.TestCase):
     }
     converted = data.convert_to_base_types(example_data)
 
-
     self.assertIs(type(converted['list']), list)
     self.assertIs(type(converted['tuple']), tuple)
     self.assertIs(type(converted['str']), str)
-    self.assertIs(type(converted['unicode']), str)
-    assert isinstance(converted['int'], int)
+    self.assertIs(type(converted['unicode']), unicode)
+    self.assertIs(type(converted['int']), int)
     self.assertIs(type(converted['float']), float)
-    assert isinstance(converted['long'], long)
+    self.assertIs(type(converted['long']), long)
     self.assertIs(type(converted['bool']), bool)
     self.assertIs(converted['none'], None)
     self.assertIs(type(converted['complex']), str)
     self.assertIs(type(converted['float_subclass']), float)
+
+
+if __name__ == '__main__':
+  unittest.main()

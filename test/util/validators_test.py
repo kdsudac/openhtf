@@ -2,19 +2,18 @@
 
 import copy
 import decimal
-import six
+import google3
 import unittest
 
-from builtins import int
 from openhtf.util import validators
 
 
 class TestInRange(unittest.TestCase):
 
   def test_raises_if_invalid_arguments(self):
-    with six.assertRaisesRegex(self, ValueError, 'Must specify minimum'):
+    with self.assertRaisesRegexp(ValueError, 'Must specify minimum'):
       validators.InRange()
-    with six.assertRaisesRegex(self, ValueError, 'Minimum cannot be greater'):
+    with self.assertRaisesRegexp(ValueError, 'Minimum cannot be greater'):
       validators.InRange(minimum=10, maximum=0)
 
   def test_invalidates_non_numbers(self):
@@ -86,7 +85,7 @@ class TestEqualsValidator(unittest.TestCase):
 class TestEqualsFactory(unittest.TestCase):
 
   def test_with_numbers(self):
-    for expected in [1, 1.0, decimal.Decimal(1), int(1)]:
+    for expected in [1, 1.0, decimal.Decimal(1), 1L]:
       number_validator = validators.equals(expected)
       self.assertTrue(number_validator(expected))
       self.assertFalse(number_validator(0))
@@ -110,7 +109,7 @@ class TestEqualsFactory(unittest.TestCase):
 class TestWithinPercent(unittest.TestCase):
 
   def test_raises_for_negative_percentage(self):
-    with six.assertRaisesRegex(self, ValueError, 'percent argument is'):
+    with self.assertRaisesRegexp(ValueError, 'percent argument is'):
       validators.WithinPercent(expected=100, percent=-1)
 
   def test_within_percent_less_than_one_hundred(self):
@@ -165,3 +164,7 @@ class TestWithinPercent(unittest.TestCase):
     validator_b = copy.deepcopy(validator_a)
     self.assertEqual(validator_a.expected, validator_b.expected)
     self.assertEqual(validator_a.percent, validator_b.percent)
+
+
+if __name__ == '__main__':
+  unittest.main()

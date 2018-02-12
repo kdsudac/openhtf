@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 
 import mock
@@ -130,3 +131,7 @@ class TestPhaseDescriptor(unittest.TestCase):
   def test_with_plugs_auto_placeholder_non_subclass_error(self):
       with self.assertRaises(plugs.InvalidPlugError):
           placeholder_using_plug.with_plugs(placed=ExtraPlug)
+
+
+if __name__ == '__main__':
+  unittest.main()

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 import mock
 
@@ -64,7 +65,11 @@ class TestFunctions(unittest.TestCase):
     @functions.call_at_most_every(5)
     def CallOnceEveryFiveSeconds():
       call_times.append(mock_time.time())
-    for _ in range(100):
+    for _ in xrange(100):
       CallOnceEveryFiveSeconds()
     # Each call takes "6 seconds", so we get call times up to 600.
-    self.assertEqual(list(range(2, 600, 6)), call_times) 
+    self.assertEquals(range(2, 600, 6), call_times) 
+
+
+if __name__ == '__main__':
+  unittest.main()

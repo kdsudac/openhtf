@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 
 import openhtf
@@ -80,7 +81,7 @@ class TestTest(test.TestCase):
 
     mock_plug.do_stuff.assert_called_with('stuff_args')
     self.assertPhaseContinue(phase_record)
-    self.assertEqual('test_phase', phase_record.name)
+    self.assertEquals('test_phase', phase_record.name)
     self.assertMeasured(phase_record, 'test_measurement', 0xBEEF)
     self.assertMeasured(phase_record, 'othr_measurement', 0xDEAD)
     self.assertMeasurementPass(phase_record, 'passes')
@@ -169,3 +170,7 @@ class TestTest(test.TestCase):
     # wrapping the yield statement in the assertRaises context.
     with self.assertRaises(test.InvalidTestError):
       test.yields_phases(bad_test)(self)
+
+
+if __name__ == '__main__':
+  unittest.main()

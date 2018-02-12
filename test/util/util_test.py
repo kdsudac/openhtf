@@ -16,6 +16,7 @@
 import copy
 import mock
 import time
+import google3
 import unittest
 
 from openhtf import util
@@ -81,3 +82,7 @@ class TestUtil(unittest.TestCase):
     empty_string = ''
     self.assertEqual('', util.partial_format(empty_string))
     self.assertEqual('', util.partial_format(empty_string, foo='bar'))
+
+
+if __name__ == '__main__':
+  unittest.main()

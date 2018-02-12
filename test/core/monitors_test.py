@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 import time
 import mock
-import queue
+import Queue
 
 import openhtf
 from openhtf import plugs
@@ -38,7 +39,7 @@ class TestMonitors(unittest.TestCase):
   def test_basics(self):
     # Use a queue to ensure that we got at least 1 complete response. An Event
     # would cause a race condition, so we'd need 2 Events, so a Queue is easier.
-    q = queue.Queue()
+    q = Queue.Queue()
 
     def monitor_func(test):
       q.put(1)
@@ -66,7 +67,7 @@ class TestMonitors(unittest.TestCase):
                      msg="And it should be the monitor func's return val")
 
   def testPlugs(self):
-    q = queue.Queue()
+    q = Queue.Queue()
 
     @plugs.plug(empty=EmptyPlug)
     def monitor(test, empty):
@@ -91,3 +92,7 @@ class TestMonitors(unittest.TestCase):
                      msg="And it should be the monitor func's return val")
 
 
+
+
+if __name__ == '__main__':
+  unittest.main()

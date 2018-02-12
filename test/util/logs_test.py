@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 import time
 import mock
@@ -23,7 +24,11 @@ class TestLogs(unittest.TestCase):
 
   def test_log_once(self):
     mock_log = mock.Mock()
-    for _ in range(10):
+    for _ in xrange(10):
       logs.log_once(mock_log, 'Message 1', 'arg1')
 
     assert mock_log.call_count == 1
+
+
+if __name__ == '__main__':
+  unittest.main()

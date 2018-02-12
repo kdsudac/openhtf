@@ -18,8 +18,7 @@ is sane. It might be worth expanding the tests to also check for things we
 actually care for.
 """
 
-import sys
-from io import BytesIO, StringIO
+from cStringIO import StringIO
 
 from examples import all_the_things
 import openhtf as htf
@@ -50,10 +49,7 @@ class TestOutput(test.TestCase):
   def test_json(self, user_mock):
     user_mock.prompt.return_value = 'SomeWidget'
     record = yield self._test
-    if sys.version_info[0] < 3:
-      json_output = BytesIO()
-    else:
-      json_output = StringIO()
+    json_output = StringIO()
     json_factory.OutputToJSON(
         json_output, sort_keys=True, indent=2)(record)
 
@@ -61,7 +57,7 @@ class TestOutput(test.TestCase):
   def test_testrun(self, user_mock):
     user_mock.prompt.return_value = 'SomeWidget'
     record = yield self._test
-    testrun_output = BytesIO()
+    testrun_output = StringIO()
     mfg_inspector.OutputToTestRunProto(testrun_output)(record)
 
 
@@ -72,3 +68,7 @@ class TestConsoleSummary(test.TestCase):
         instance = console_summary.ConsoleSummary()
         for outcome in htf.test_record.Outcome:
             self.assertIn(outcome, instance.color_table)
+
+
+if __name__ == '__main__':
+  unittest.main()

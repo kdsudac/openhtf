@@ -72,35 +72,38 @@ class PlugsTest(test.TestCase):
 
   def test_base_plug(self):
     plug = plugs.BasePlug()
-    self.assertEqual({}, plug._asdict())
+    self.assertEquals({}, plug._asdict())
     plug.tearDown()
 
   def test_initialize(self):
-    self.assertEqual(0, AdderPlug.INSTANCE_COUNT)
+    self.assertEquals(0, AdderPlug.INSTANCE_COUNT)
     self.plug_manager.initialize_plugs()
-    self.assertEqual(1, AdderPlug.INSTANCE_COUNT)
+    self.assertEquals(1, AdderPlug.INSTANCE_COUNT)
     self.plug_manager.initialize_plugs()
-    self.assertEqual(1, AdderPlug.INSTANCE_COUNT)
+    self.assertEquals(1, AdderPlug.INSTANCE_COUNT)
     self.plug_manager.initialize_plugs({AdderPlug})
-    self.assertEqual(1, AdderPlug.INSTANCE_COUNT)
+    self.assertEquals(1, AdderPlug.INSTANCE_COUNT)
     self.assertIs(
         AdderPlug.LAST_INSTANCE,
         self.plug_manager.provide_plugs(
             (('adder_plug', AdderPlug),))['adder_plug'])
-    self.assertEqual(self.plug_manager._asdict()['plug_descriptors'], {
-            'plugs_test.AdderPlug': plugs.PlugDescriptor(['plugs_test.AdderPlug']),
-        })
-    self.assertEqual(self.plug_manager._asdict()['plug_states'], {
+    self.assertItemsEqual(self.plug_manager._asdict(), {
+        'plug_descriptors': {
+            'plugs_test.AdderPlug': plugs.PlugDescriptor('plugs_test.AdderPlug'),
+        },
+        'plug_states': {
             'plugs_test.AdderPlug': {'number': 0},
-        })
-    self.assertEqual('CREATED', AdderPlug.LAST_INSTANCE.state)
+        },
+        'xmlrpc_port': None,
+    })
+    self.assertEquals('CREATED', AdderPlug.LAST_INSTANCE.state)
 
   @test.yields_phases
   def test_multiple_plugs(self):
     @plugs.plug(adder_plug=AdderPlug)
     @plugs.plug(other_plug=AdderPlug)
     def dummy_phase(test_api, adder_plug, other_plug):
-      self.assertEqual(1, AdderPlug.INSTANCE_COUNT)
+      self.assertEquals(1, AdderPlug.INSTANCE_COUNT)
       self.assertIs(AdderPlug.LAST_INSTANCE, adder_plug)
       self.assertIs(AdderPlug.LAST_INSTANCE, other_plug)
     yield dummy_phase
@@ -108,7 +111,7 @@ class PlugsTest(test.TestCase):
     @plugs.plug(adder_plug=AdderPlug,
                 other_plug=plugs.BasePlug)
     def dummy_phase(test_api, adder_plug, other_plug):
-      self.assertEqual(1, AdderPlug.INSTANCE_COUNT)
+      self.assertEquals(1, AdderPlug.INSTANCE_COUNT)
       self.assertIs(AdderPlug.LAST_INSTANCE, adder_plug)
     yield dummy_phase
 
@@ -142,17 +145,17 @@ class PlugsTest(test.TestCase):
     self.plug_manager.initialize_plugs({AdderPlug})
     update = self.plug_manager.wait_for_plug_update(
         'plugs_test.AdderPlug', {}, .001)
-    self.assertEqual({'number': 0}, update)
+    self.assertEquals({'number': 0}, update)
     # No update since last time, this should time out (return None).
     self.assertIsNone(self.plug_manager.wait_for_plug_update(
         'plugs_test.AdderPlug', update, .001))
 
     def _delay_then_update():
       time.sleep(.5)
-      self.assertEqual(1, AdderPlug.LAST_INSTANCE.increment())
+      self.assertEquals(1, AdderPlug.LAST_INSTANCE.increment())
     threading.Thread(target=_delay_then_update).start()
     start_time = time.time()
-    self.assertEqual({'number': 1}, self.plug_manager.wait_for_plug_update(
+    self.assertEquals({'number': 1}, self.plug_manager.wait_for_plug_update(
         'plugs_test.AdderPlug', update, 5))
     self.assertGreater(time.time() - start_time, .2)
 
@@ -178,3 +181,7 @@ class PlugsTest(test.TestCase):
       @plugs.plug(adder_plug=AdderPlug)
       def dummy_phase(test, adder_plug):
         pass
+
+
+if __name__ == '__main__':
+  unittest.main()

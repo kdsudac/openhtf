@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import google3
 import unittest
 
 import mock
@@ -64,3 +65,7 @@ class TestTestApi(unittest.TestCase):
 
     measurement.value.append(4)
     self.assertNotEqual(measurement_val, measurement.value)
+
+
+if __name__ == '__main__':
+  unittest.main()

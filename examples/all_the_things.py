@@ -28,7 +28,7 @@ from openhtf.plugs import user_input
 from openhtf.output import callbacks
 from openhtf.output.callbacks import json_factory
 
-from examples import example_plugs
+import example_plugs
 
 
 @htf.plug(example=example_plugs.ExamplePlug)
@@ -87,8 +87,7 @@ def set_measurements(test):
     htf.Measurement('unset_dims').with_dimensions(units.HERTZ),
     htf.Measurement('dimensions').with_dimensions(units.HERTZ),
     htf.Measurement('lots_of_dims').with_dimensions(
-        units.HERTZ, units.SECOND,
-        htf.Dimension(description='my_angle', unit=units.RADIAN)))
+        units.HERTZ, units.SECOND, units.RADIAN))
 def dimensions(test):
   for dim in range(5):
     test.measurements.dimensions[dim] = 1 << dim
@@ -108,12 +107,12 @@ def measures_with_args(test, min, max):
 
 
 def attachments(test):
-  test.attach('test_attachment', 'This is test attachment data.'.encode('utf-8'))
+  test.attach('test_attachment', 'This is test attachment data.')
   test.attach_from_file(
       os.path.join(os.path.dirname(__file__), 'example_attachment.txt'))
 
   test_attachment = test.get_attachment('test_attachment')
-  assert test_attachment.data == 'This is test attachment data.'
+  assert test_attachment == 'This is test attachment data.'
 
 
 @htf.TestPhase(run_if=lambda: False)
@@ -125,7 +124,7 @@ def analysis(test):
   level_all = test.get_measurement('level_all')
   assert level_all.value == 9
   test_attachment = test.get_attachment('test_attachment')
-  assert test_attachment.data == 'This is test attachment data.'
+  assert test_attachment == 'This is test attachment data.'
   lots_of_dims = test.get_measurement('lots_of_dims')
   assert lots_of_dims.value == [
       (1, 21, 101, 123),

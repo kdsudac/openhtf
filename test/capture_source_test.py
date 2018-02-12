@@ -13,6 +13,7 @@
 # limitations under the License.
 
 
+import google3
 import unittest
 
 import openhtf as htf
@@ -30,12 +31,16 @@ class BasicCodeCaptureTest(unittest.TestCase):
     htf.conf.load(capture_source=True)
     test = htf.Test(phase)
     phase_descriptor = test.descriptor.phases[0]
-    self.assertEqual(phase_descriptor.code_info.name, phase.__name__)
+    self.assertEquals(phase_descriptor.code_info.name, phase.__name__)
 
   @htf.conf.save_and_restore
   def testNotCaptured(self):
     htf.conf.load(capture_source=False)
     test = htf.Test(phase)
     phase_descriptor = test.descriptor.phases[0]
-    self.assertEqual(phase_descriptor.code_info.name, '')
+    self.assertEquals(phase_descriptor.code_info.name, '')
 
+
+
+if __name__ == '__main__':
+  unittest.main()
