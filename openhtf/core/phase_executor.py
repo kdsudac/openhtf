@@ -193,6 +193,7 @@ class PhaseExecutor(object):
 
   def __init__(self, test_state):
     self.test_state = test_state
+    self._current_phase_thread_lock = threading.Lock()
     self._current_phase_thread = None
     self._stopping = threading.Event()
 
@@ -232,17 +233,25 @@ class PhaseExecutor(object):
 
     with self.test_state.running_phase_context(phase_desc) as phase_state:
       _LOG.info('Executing phase %s', phase_desc.name)
-      phase_thread = PhaseExecutorThread(phase_desc, self.test_state)
-      phase_thread.start()
-      self._current_phase_thread = phase_thread
+      with self._current_phase_thread_lock:
+        if self._stopping.is_set():
+          return None
+        phase_thread = PhaseExecutorThread(phase_desc, self.test_state)
+        phase_thread.start()
+        self._current_phase_thread = phase_thread
       result = phase_state.result = phase_thread.join_or_die()
       if phase_state.result.is_repeat and is_last_repeat:
         _LOG.error('Phase returned REPEAT, exceeding repeat_limit.')
         phase_state.hit_repeat_limit = True
         result = PhaseExecutionOutcome(openhtf.PhaseResult.STOP)
+      with self._current_phase_thread_lock:
+        self._current_phase_thread = None
 
     _LOG.debug('Phase finished with result %s', result)
     return result
+
+  def reset_stop(self):
+    self._stopping.clear()
 
   def stop(self, timeout_s=None):
     """Stops execution of the current phase, if any.
@@ -253,12 +262,11 @@ class PhaseExecutor(object):
     Args:
       timeout_s: int or None, timeout in seconds to wait for the phase to stop.
     """
-    phase_thread = self._current_phase_thread
-
-    if not phase_thread:
-      return
-
-    self._stopping.set()
+    with self._current_phase_thread_lock:
+      self._stopping.set()
+      phase_thread = self._current_phase_thread
+      if not phase_thread:
+        return
 
     if phase_thread.is_alive():
       phase_thread.kill()
@@ -271,6 +279,3 @@ class PhaseExecutor(object):
                  "didn't" if phase_thread.is_alive() else 'did')
     # Clear the currently running phase, whether it finished or timed out.
     self.test_state.stop_running_phase()
-
-    # Clear stopping once we're done, in case we're used again.
-    self._stopping.clear()
