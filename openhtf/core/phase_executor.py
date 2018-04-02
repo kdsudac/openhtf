@@ -223,6 +223,35 @@ class PhaseExecutor(object):
     # We've been cancelled, so just 'timeout' the phase.
     return PhaseExecutionOutcome(None)
 
+  """
+  Notes on lock behavior.  let's assume _execute_phase_once will never be run by
+  multiple threads concurrently.  So the only place we have to worry about race
+  conditions are interactions between stop() and _execute_phase_once.
+
+  _execute_phase_once changes self._current_phase_thread to "set" and "clear"
+  while stop() only has "clear".
+
+  As written by arsharma, for contention between "set" and "stop".
+
+  If set holds lock first, the thread will be started then almost immediately killed by stop().
+  If stop holds lock first, _stopping will be set and phase "set" exits before setting
+
+  As written by arsharma, for contention between "clear" and "stop".
+
+  If "clear" holds lock first, the thread will be cleared, _stopping is set and nothing needs to be killed.
+  If "stop" holds lock first, _stopping is set the current phase_executor is *probably* not killed because
+   of phase_thread.is_alive() check.
+
+  Alternative implementation.
+
+  If set holds lock first, _stopping is set, phase_thread is created, then almost immediately killed by stop() (same behavior)
+  If stop holds lock first, _stopping is set rest of stop is no-op.  Same behavior.
+
+  For "clear" portion to be reached the thread must have exited.  Either the thread is cleared or is_alive() is False.
+  """
+
+
+
   def _execute_phase_once(self, phase_desc, is_last_repeat):
     """Executes the given phase, returning a PhaseExecutionOutcome."""
     # Check this before we create a PhaseState and PhaseRecord.
@@ -244,8 +273,8 @@ class PhaseExecutor(object):
         _LOG.error('Phase returned REPEAT, exceeding repeat_limit.')
         phase_state.hit_repeat_limit = True
         result = PhaseExecutionOutcome(openhtf.PhaseResult.STOP)
-      with self._current_phase_thread_lock:
-        self._current_phase_thread = None
+
+      self._current_phase_thread = None
 
     _LOG.debug('Phase finished with result %s', result)
     return result
@@ -262,8 +291,10 @@ class PhaseExecutor(object):
     Args:
       timeout_s: int or None, timeout in seconds to wait for the phase to stop.
     """
+    self._stopping.set()
+    # If current_phase_thread is already in process of being created, block
+    # until it's created.
     with self._current_phase_thread_lock:
-      self._stopping.set()
       phase_thread = self._current_phase_thread
       if not phase_thread:
         return
